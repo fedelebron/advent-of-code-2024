@@ -1,4 +1,3 @@
-import Data.List
 import Data.Matrix
 import Control.Arrow
 instance Num (Int, Int) where
@@ -27,20 +26,14 @@ tm ep d m = case y of
     nep = ep + d
     x = m ! ep
     y = m ! nep
-ev d (m, p) = case m ! z of
-  '.' -> (ss '.' p (ss '@' z m), z)
-  '#' -> (m, p)
-  _ -> maybe (m, p) (, z) (tm p d' m)
-  where
-    z = p + d'
-    d' = toDelta d
+ev d (m, p) = maybe (m, p) (, p + d) (tm p d m)
 score (i, j) c | c `elem` "O[" = 100*(i - 1) + (j - 1)
 score _ _ = 0
 f x moves = let mat = fromLists x
                 pos = fi '@' mat
-                (m, _) = foldr ev (mat, pos) (reverse moves)
+                (m, _) = foldr ev (mat, pos) (reverse (map toDelta moves))
             in sum (mapPos score m)
-g x = f (map (concat . map p2) x)
+g = f . map (p2 =<<)
   where
     p2 '.' = ".."
     p2 '#' = "##"
