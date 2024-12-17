@@ -13,7 +13,7 @@ import Control.Monad
     stc::cout << (B % 8) << std::endl;
 -}
 program = [2,4,1,1,7,5,0,3,1,4,4,4,5,5,3,0]
-iConst k = mkInteger k >>= mkInt2bv 64
+iConst = mkInteger >=> mkInt2bv 64
 oneRound (a, cs@[c1, c3, c4, c7], res) _ = do
   b <- a `mkBvand` c7
   b <- b `mkBvxor` c1
@@ -28,17 +28,13 @@ oneRound (a, cs@[c1, c3, c4, c7], res) _ = do
 allRounds a = do
   constants <- sequence (map iConst [1, 3, 4, 7])
   (a', _, outs) <- foldM oneRound (a, constants, []) [1 .. 16]
-  targets <- mapM (mkInteger >=> mkInt2bv 64) program
+  targets <- mapM iConst program
   z0 <- iConst 0
   mkAnd =<< zipWithM mkEq (z0:outs) (a':targets)
 
 problem lim = do
   a <- mkFreshBvVar "a" 64
-  case lim of 
-    Nothing -> return ()
-    Just x -> do
-      y <- iConst x
-      assert =<< mkBvult a y
+  maybe (return ()) (((assert =<<) . mkBvult a =<<) . iConst) lim
   assert =<< allRounds a
   fmap snd $ withModel $ \m -> fromJust <$> evalInt m a
 
