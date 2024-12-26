@@ -13,7 +13,7 @@ makeGraph cs r c = let assocs = filter ((/= 'X') . snd) (toList (mapPos (,) (fro
 nums = makeGraph "789456123X0A" 4 3
 dirs = makeGraph "X^A<v>" 2 3
 gs = [nums, dirs]
-bfs = memo bfs'
+bfs = memo3 bfs'
   where
     bfs' v w gi = let gg = gs !! gi
                in  go gg [(v, "")] Nothing []
